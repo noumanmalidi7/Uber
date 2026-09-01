@@ -1,0 +1,10 @@
+# Core data manipulation
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Visualization
+plotly>=5.15.0
+matplotlib>=3.7.0
+
+# Machine Learning / Clustering
+scikit-learn>=1.3.0

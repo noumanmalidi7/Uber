@@ -1,34 +1,51 @@
-# 🚗 Analyse des courses Uber – Détection des zones chaudes à New York
+# 🚕 Uber Hot Zones in New York — Unsupervised Clustering
 
-## 📌 Contexte du projet
-Uber souhaite réduire le temps d'attente des utilisateurs en recommandant aux chauffeurs les **zones chaudes (hot zones)** où la demande est la plus forte. L'enjeu est de passer d'une logique réactive à une logique proactive : anticiper les pics de demande pour positionner les véhicules au bon endroit et au bon moment.
+> Finding the areas of New York where Uber pickups concentrate, by day and hour, so drivers can be positioned **before** demand peaks.
+> *Jedha Data Science certification project — RNCP35288, Block 3 (unsupervised machine learning).*
 
-Ce projet se concentre sur **New York** et utilise les données de courses d'avril à septembre 2014. L'objectif est double :
-1. **Détecter** des zones géographiques cohérentes (clusters) où les pickups sont concentrés.
-2. **Visualiser** ces zones sur des cartes interactives, par jour de semaine et par heure.
+---
 
-## 🎯 Objectifs principaux
-- Créer un algorithme pour identifier les zones chaudes (hot zones).
-- Visualiser les résultats sur un tableau de bord interactif (cartes Plotly).
-- Décrire les hot zones par jour de la semaine.
-- Comparer au moins deux algorithmes de clustering non supervisé : **KMeans** et **DBSCAN**.
+## 🎯 Business problem
+Uber wants to cut waiting times by recommending **hot zones** to drivers: moving from a reactive to a proactive logic, with cars already in the right place at the right time.
 
-## 📂 Structure du projet
-Uber_HotZones/
-│
-├── uber_ds3.ipynb # Notebook principal (analyse complète)
-├── requirements.txt # Dépendances Python
-├── README.md # Ce fichier
-│
-├── uber-trip-data/ # Dossier contenant les données brutes
-│ ├── uber-raw-data-apr14.csv
-│ ├── uber-raw-data-may14.csv
-│ ├── uber-raw-data-jun14.csv
-│ ├── uber-raw-data-jul14.csv
-│ ├── uber-raw-data-aug14.csv
-│ ├── uber-raw-data-sep14.csv
-│ └── uber-raw-data-janjune-15.csv # (Ignoré, car sans coordonnées GPS)
-│
-└── models/ # Dossier créé automatiquement pour le cache
-├── kmeans_model.pkl # Modèle KMeans entraîné (sauvegardé)
-└── dbscan_labels.npy # Labels DBSCAN (sauvegardés)
+## 📊 Data
+- Uber pickups in New York, **April to August 2014**: **3.5 million trips** (3,481,313 after keeping only New York coordinates)
+- Each trip: date/time, latitude, longitude → engineered `hour` and `day_of_week`
+- 2015 data excluded (zone IDs only, no GPS coordinates)
+
+## 🔍 Key EDA insights
+- Demand peaks **between 5 pm and 7 pm** (end of the working day)
+- **Monday–Thursday** are busier than weekends; weekend demand spreads to residential and leisure areas
+- Activity grows over the summer months
+
+## 🛠️ Approach
+| Step | Method |
+|---|---|
+| Number of zones | Elbow method + **silhouette score** |
+| **K-Means** | k = 8 → **silhouette ≈ 0.44** · model cached to avoid recomputation |
+| **DBSCAN** | `eps` estimated from the k-distance graph (0.004), `min_samples = 15` |
+| Visualisation | Interactive **Plotly** maps per weekday and hour |
+
+## ✅ Results
+- **K-Means (k = 8)** produces compact, interpretable zones: Manhattan (Midtown, Financial District), Brooklyn, Queens and the airports. Cluster centres can be sent directly to drivers as target locations.
+- **DBSCAN** with these parameters merged all points into **a single cluster**: pickups in New York are so dense that zones connect. It needs smaller `eps`, larger `min_samples`, or running per time slot to reveal sub-zones.
+- ➡️ **Recommendation: K-Means** for a real-time driver app (one parameter, stable, cluster centres usable as coordinates).
+
+## 💡 Business recommendations
+1. **Dynamic driver allocation**: send drivers to hot clusters ~30 minutes before peaks (e.g. 5 pm on weekdays)
+2. **Targeted driver communication** in the app, by day and hour
+3. Watch growing outer clusters (Brooklyn, Queens) for new driver bases
+
+## 🧰 Tech stack
+`Python` · `pandas` · `scikit-learn` (K-Means, DBSCAN, silhouette) · `Plotly` · `joblib`
+
+## 📁 Repository
+```
+├── Uber_ds3.ipynb    # full analysis
+├── models/           # cached K-Means / DBSCAN models
+├── uber-trip-data/   # monthly trip files
+└── requirements.txt
+```
+
+---
+👤 **Nouman Malidi Mlimi** — Data Scientist / Data Analyst · [Portfolio](https://noumanmalidi7.github.io) · [LinkedIn](https://www.linkedin.com/in/nouman-malidi-a99276326/)
